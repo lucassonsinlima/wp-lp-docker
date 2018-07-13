@@ -1,1 +1,2 @@
-# wp-lp-docker
+WP Project with docker
+=====================

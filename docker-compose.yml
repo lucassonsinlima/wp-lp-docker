@@ -1,0 +1,78 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+    image: herokuphp
+    command: 'bash -c "source .env && tools/start-web.sh"'
+    working_dir: /app/user
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app/user:rw,cached
+    links:
+      - mysql
+      - redis
+    environment:
+      - VIRTUAL_HOST=wordpress.local
+
+  shell:
+    build:
+      context: .
+    image: herokuphp
+    command: 'bash -c "source .env && bash"'
+    working_dir: /app/user
+    volumes:
+      - .:/app/user:rw,cached
+    links:
+      - mysql
+      - redis
+
+  ci:
+    build:
+      context: .
+    image: herokuphp
+    command: bash tools/ci.sh
+    working_dir: /app/user
+    volumes:
+      - .:/app/user:rw,cached
+    links:
+      - mysql
+      - redis
+
+  ##
+  # To use adminer, navigate to http://localhost:8081
+  #
+  # Use the following mysql credentials:
+  #
+  # Host: mysql
+  # User: wordpress
+  # Password: password
+  # Database: wordpress
+  ##
+  adminer:
+    image: clue/adminer:latest
+    ports:
+      - 8081:80
+    links:
+      - mysql
+
+  mysql:
+    image: mysql:latest
+    volumes:
+      - mysqldata:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: password
+
+  redis:
+    image: redis:3.2
+    ports:
+      - 6379:6379
+
+volumes:
+  mysqldata: {}
